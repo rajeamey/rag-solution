@@ -12,6 +12,7 @@ Jupyter notebook is also present for use.
 
 ## Features
 
+- Stores embeddings in SQLiteDB
 - Efficient document retrieval using FAISS.
 - Response generation using OpenAI's GPT-3.5.
 - Streamlit app for interactive query input and response display.

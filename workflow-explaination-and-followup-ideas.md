@@ -19,9 +19,12 @@ This document provides a detailed explanation of the workflow for the Retrieval-
 
 ### 2. Embedding Generation
 
-- **EmbeddingService**: Generates embeddings for each document using the OpenAI API.
+- **EmbeddingService**: Generates and stores embeddings for each document using the OpenAI API.
   - `generate_embedding_in_bulk` method processes the entire dataset.
   - `generate_embedding` method handles individual text embeddings.
+  - `_initialize_db` method creates SQLiteDB to store embeddings.
+  - `_store_embedding_in_db` method inserts individual text embeddings in database.
+  - `_fetch_embedding_from_db` method retrieves individual text embeddings from database.
 
 ### 3. Indexing and Retrieval
 
@@ -59,6 +62,6 @@ This document provides a detailed explanation of the workflow for the Retrieval-
 ### 3. Framework and Storage Enhancements
 
 - **Replacing Streamlit**: Consider replacing Streamlit with a more robust Python web framework (e.g., Flask or Django) to handle complex web applications and deployments.
-- **Persistent Vector Database**: Use a persistent vector database for embedding storage to avoid reprocessing the same data repeatedly. This will reduce computational overhead and improve system efficiency.
+- **Persistent Vector Database**: Use a persistent vector database for embedding storage instead of relational database. This will reduce computational overhead and improve system efficiency.
 - **Logging**: Implement comprehensive logging to track the flow of data and identify where issues occur.
 - **API Response Handling**: Add error handling for API calls to manage network issues, API rate limits, and other potential failures gracefully.

@@ -11,6 +11,7 @@ import faiss
 import numpy as np
 import os
 import openai
+import sqlite3
 
 class RAGSolution:
     """
@@ -52,7 +53,8 @@ class RAGSolution:
                 {'role': 'system', 'content': "You have to answer question based on context given"},
                 {'role': 'user', 'content': prompt}
             ],
-            temperature=0
+            max_tokens=300,
+            temperature=0.5
         )
         return response.choices[0].message.content
 
@@ -117,6 +119,45 @@ class EmbeddingService:
         init for embedding service
         """
         self.openai_client = openai.OpenAI(api_key=os.environ.get("PERSONAL_OPENAI_KEY"))
+        self.db_path = 'embeddings.db'
+        self._initialize_db()
+
+    def _initialize_db(self):
+        """
+        Initialize the SQLite database for storing embeddings
+        """
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS embeddings (
+                text TEXT PRIMARY KEY,
+                embedding TEXT
+            )
+        """)
+        conn.commit()
+        conn.close()
+
+    def _fetch_embedding_from_db(self, text: str):
+        """
+        Fetch embedding from SQLite database
+        """
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute("SELECT embedding FROM embeddings WHERE text = ?", (text,))
+        result = cursor.fetchone()
+        conn.close()
+        return result[0] if result else None
+
+    def _store_embedding_in_db(self, text: str, embedding: list):
+        """
+        Store embedding in SQLite database
+        """
+        conn = sqlite3.connect(self.db_path)
+        cursor = conn.cursor()
+        cursor.execute("INSERT OR REPLACE INTO embeddings (text, embedding) VALUES (?, ?)", 
+                       (text, str(embedding)))
+        conn.commit()
+        conn.close()
 
     def generate_embedding_in_bulk(self, data_array: list[str]) -> list[list]:
         """
@@ -128,15 +169,23 @@ class EmbeddingService:
         embedding_array: list[list] = []
         print(f"Generating embeddings for {len(data_array)} docs")
         for text in data_array:
-            print("#",end="")
             embedding_array.append(self.generate_embedding(text))
-        print("")
         return embedding_array
 
     def generate_embedding(self, text: str) -> list:
         """
         This method generates embeddings of text using OPENAI API
+        It checks whether embedding already generated and stored. 
+        Return stored embedding if exists else generates new one and stores in DB
         """
         text = text.replace('\n', " ")
-        return self.openai_client.embeddings.create(input = [text], model="text-embedding-3-small").data[0].embedding
+        # fetch from db if exists
+        existing_embedding = self._fetch_embedding_from_db(text)
+        if existing_embedding:
+            return eval(existing_embedding)
+        # generate new embedding
+        embedding = self.openai_client.embeddings.create(input = [text], model="text-embedding-3-small").data[0].embedding
+        # store new embedding for future use
+        self._store_embedding_in_db(text, embedding)
+        return embedding
 
