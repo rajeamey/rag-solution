@@ -58,7 +58,8 @@ This document provides a detailed explanation of the workflow for the Retrieval-
 ### 2. Enhanced Features
 
 - **Contextual Understanding**: Improve context handling to maintain conversational state over multiple queries.
-
+- **Knowledge Graphs**: Implement dynamic updates to the Knowledge Graph to keep the information current and relevant.
+- **Advanced Reasoning**: Integrate reasoning capabilities to allow the system to make logical inferences based on the Knowledge Graph.
 ### 3. Framework and Storage Enhancements
 
 - **Replacing Streamlit**: Consider replacing Streamlit with a more robust Python web framework (e.g., Flask or Django) to handle complex web applications and deployments.
